@@ -1,11 +1,14 @@
+
 import json
+import random
 import re
+import requests
 import secrets
+import string
 import time
 
-import requests
-from pathlib import Path
 from bs4 import BeautifulSoup
+from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
 session = requests.Session()
@@ -18,7 +21,7 @@ session.headers.update( {
   "Referer": "https://www.wcostream.tv/",
 } )
 
-episode_url = "https://www.wcostream.tv/super-kitties-season-3-episode-10-the-glamping-glamsters-trouble-in-the-jungle"
+episode_url = "https://www.wcostream.tv/super-kitties-season-3-episode-13-bubble-bathin-burbles-favorite-favorites"
 
 print( episode_url )
 
@@ -39,31 +42,45 @@ print( iframe_url )
 iframe = session.get( iframe_url, timeout=30 )
 print( iframe.status_code )
 
-nonce = "a7d13d592cf51f15dd9c588f6c83325b"
-# nonce = secrets.token_hex( 16 )
+flag = "__abd_" + "".join( random.choices( string.ascii_lowercase + string.digits, k=8 ) )
+advertising_url = f"https://embed.wcostream.com/assets/ads/advertisement.js?flag={ flag }&_={ int( time.time() * 1000 ) }"
 
-# beaconBody = json.dumps( {
-#   "nonce": nonce,
-#   "status": "clear",
-#   "id": parse_qs( urlparse( iframe_url ).query )[ "pid" ][ 0 ],
-# }, separators=(",", ":" ), ensure_ascii=False )
+print( advertising_url )
 
-# print( beaconBody )
+advertising = session.get( 
+  advertising_url, 
+  headers = {
+    "Referer": iframe_url,
+  },
+  timeout=30 
+)
+print( advertising.status_code )
 
-# beacon_response = session.post( 
-#   "https://embed.wcostream.com/ad-verify",
-#   data = beaconBody,
-#   headers= {
-#     "Content-Type": "application/json",
-#     "Origin": "https://embed.wcostream.com",
-#     "Referer": iframe_url,
-#   }
-# )
+# nonce = "f3ca9da29e30722d935c21abea110844"
+nonce = secrets.token_hex( 16 )
 
-# print( session.cookies.get_dict() )
+beaconBody = json.dumps( {
+  "nonce": nonce,
+  "status": "clear",
+  "id": parse_qs( urlparse( iframe_url ).query )[ "pid" ][ 0 ],
+}, separators=(",", ":" ), ensure_ascii=False )
 
-# print( beacon_response.status_code )
-# print( beacon_response.text )
+print( beaconBody )
+
+beacon_response = session.post( 
+  "https://embed.wcostream.com/ad-verify",
+  data = beaconBody,
+  headers= {
+    "Content-Type": "application/json",
+    "Origin": "https://embed.wcostream.com",
+    "Referer": iframe_url,
+  }
+)
+
+print( session.cookies.get_dict() )
+
+print( beacon_response.status_code )
+print( beacon_response.text )
 
 # time.sleep( 1 )
 

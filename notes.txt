@@ -43,6 +43,8 @@ If I stop the page before beacon is sent and send with cURL instead
 So something happens between nonce generation and beacon to make server happy
   - validate with cURL beacons for now, since I know those can work
   - try to figure out the difference beween cURL and python beacons after
+    - only difference is a request to advertisement.js
+      - BAIT_SCRIPT
 
 9/22:
 
